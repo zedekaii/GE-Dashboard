@@ -560,295 +560,408 @@ function switchTab(tab, btn) {
 // ════════════════════════════════════════
 // TASKS
 // ════════════════════════════════════════
-const DEFAULT_SECTIONS = [
-  { id:'inbox', name:'Inbox', color:'inbox', groups:[{label:null,tasks:[]}] },
-  { id:'s1', name:'Greener Edge Development', color:'green', groups:[
-    {label:'AI in the Workplace', tasks:[
-      {id:'ge1',label:'Model Claude for accounts for business',sub:'',priority:'medium',done:false,deadline:null},
-      {id:'ge2',label:'AI policy',sub:'',priority:'medium',done:false,deadline:null}
-    ]},
-    {label:'Internal PCFT Development',tasks:[]}
-  ]},
-  { id:'s2', name:'Welsh F&D', color:'red', groups:[
-    {label:'PCFT',tasks:[]},
-    {label:'OFT',tasks:[
-      {id:'w1',label:'Weekly Reminder emails - update',sub:'',priority:'high',done:false,deadline:null},
-      {id:'w2',label:'Update report template',sub:'',priority:'medium',done:false,deadline:null},
-      {id:'w3',label:'Develop Scope and Questions V2',sub:'',priority:'high',done:false,deadline:null}
-    ]},
-    {label:'Sector Footprint',tasks:[
-      {id:'w4',label:'Review EAG and SIG Alignment',sub:'',priority:'high',done:true,deadline:null},
-      {id:'w5',label:'Support Laura and Lucy with methodology comments',sub:'',priority:'medium',done:true,deadline:null}
-    ]},
-    {label:'Others',tasks:[
-      {id:'w6',label:'Develop questions for Energy Analysis Database',sub:'',priority:'high',done:false,deadline:null}
-    ]}
-  ]},
-  { id:'s3', name:'HOGAN', color:'amber', groups:[
-    {label:'Org. Footprints',tasks:[
-      {id:'h1',label:'Review Hogan Asphalts 1st Draft Report',sub:'Becks has written the first report and wants it reviewed to ensure others have enough narrative and breakdown',priority:'medium',done:true,deadline:null},
-      {id:'h2',label:'Review the individual footprint calcs',sub:'George supporting',priority:'medium',done:false,deadline:null},
-      {id:'h3',label:'Go-through Hogan Asphalt Report with Becks and check raw materials and top supplier',sub:'',priority:'high',done:true,deadline:null}
-    ]}
-  ]},
-  { id:'s4', name:'Admin', color:'blue', groups:[
-    {label:'LM Handover',tasks:[
-      {id:'a1',label:'AL & Sickness Tracker Forwarded',sub:'To Becky',priority:'high',done:false,deadline:null},
-      {id:'a2',label:'Notes on both Nel and Becks handover',sub:'To Becky',priority:'medium',done:false,deadline:null}
-    ]},
-    {label:'Others',tasks:[
-      {id:'a3',label:'Becks - Case Study Sign Off',sub:'',priority:'high',done:true,deadline:null},
-      {id:'a4',label:'Go-through RIG Report with Henry',sub:'',priority:'medium',done:true,deadline:null}
-    ]}
-  ]}
-];
 
-let state = { sections: JSON.parse(JSON.stringify(DEFAULT_SECTIONS)), todayIds: [] };
-let idCounter = 300;
+// ── ID generator ──
+// Uses a counter that persists across renders; starts high enough
+// that it never collides with the hardcoded section/task IDs.
+let idCounter = 1000;
 const newId  = () => 't' + (++idCounter);
 const newSId = () => 's' + (++idCounter);
 
+// ── Default data ──
+// All task IDs are generated via newId() so they are guaranteed unique
+// and cannot collide with any IDs generated during the session.
+function buildDefaults() {
+  // Dates derived from screenshot (today = 2026-05-19):
+  // "Due tomorrow"  = 2026-05-20
+  // "Due 30 May"    = 2026-05-30
+  // "Overdue 4d"    = 2026-05-15
+  // "Overdue 6d"    = 2026-05-13
+  const inboxTaskA = { id: newId(), label: 'Understand the LSR Guidance', sub: '', priority: 'medium', done: false, deadline: '2026-05-30' };
+  const inboxTaskB = { id: newId(), label: 'Understand the WBCSD Avoided Emissions Guidance', sub: '', priority: 'medium', done: false, deadline: '2026-05-20' };
+  const scopeTask  = { id: newId(), label: 'Develop Scope and Questions V2', sub: '', priority: 'high', done: false, deadline: '2026-05-15' };
+  return [
+    { id: newSId(), name: 'Inbox', color: 'inbox', groups: [{ label: null, tasks: [inboxTaskA, inboxTaskB] }] },
+    { id: newSId(), name: 'Greener Edge Development', color: 'green', groups: [
+      { label: 'AI in the Workplace', tasks: [] },
+      { label: 'Internal PCFT Development', tasks: [
+        { id: newId(), label: 'Develop Response for Tomato PCF Preparation Enquiry', sub: '', priority: 'high', done: false, deadline: '2026-05-13' }
+      ]},
+      { label: 'Potential Clients', tasks: [
+        { id: newId(), label: 'Write Proposal to SRS', sub: 'Ask Henry for support if needed', priority: 'medium', done: false, deadline: '2026-05-20' }
+      ]}
+    ]},
+    { id: newSId(), name: 'Welsh F&D', color: 'red', groups: [
+      { label: 'PCFT', tasks: [
+        { id: newId(), label: 'One Pager - Review of Beef PCF Tool', sub: '', priority: 'medium', done: false, deadline: '2026-05-20' }
+      ]},
+      { label: 'OFT', tasks: [
+        scopeTask,
+        { id: newId(), label: 'Build WPPN 006 for FBAS Checklist CRP Review', sub: '', priority: 'medium', done: false, deadline: '2026-05-15' },
+        { id: newId(), label: 'Check Roberts CRP against WPPN 006 for FBAS', sub: '', priority: 'medium', done: false, deadline: '2026-05-13' }
+      ]},
+      { label: 'Sector Footprint', tasks: [] },
+      { label: 'Others', tasks: [] }
+    ]},
+    { id: newSId(), name: 'HOGAN', color: 'amber', groups: [
+      { label: 'Org. Footprints', tasks: [
+        { id: newId(), label: 'Ensure Hogan Logos and Turnover Data is updated', sub: '', priority: 'medium', done: false, deadline: '2026-05-15' }
+      ]}
+    ]},
+    { id: newSId(), name: 'Admin', color: 'blue', groups: [
+      { label: 'LM Handover', tasks: [] },
+      { label: 'Others', tasks: [] }
+    ]}
+  ];
+}
+
+const _defaults = buildDefaults();
+let _scopeId = null;
+for (const s of _defaults) { for (const g of s.groups) { const t = g.tasks.find(t => t.label === 'Develop Scope and Questions V2'); if (t) { _scopeId = t.id; break; } } if (_scopeId) break; }
+let state = { sections: _defaults, todayIds: _scopeId ? [{ id: _scopeId, time: null }] : [] };
+
 function priorityBadge(p) {
-  const map = {high:['badge-red','High'],medium:['badge-amber','Med'],lower:['badge-blue','Lower'],tbd:['badge-gray','TBD']};
-  const [cls,label] = map[p]||['badge-gray',p];
+  const map = { high: ['badge-red', 'High'], medium: ['badge-amber', 'Med'], lower: ['badge-blue', 'Lower'], tbd: ['badge-gray', 'TBD'] };
+  const [cls, label] = map[p] || ['badge-gray', p];
   return `<span class="badge ${cls}">${label}</span>`;
 }
-function allTasks() { return state.sections.flatMap(s=>s.groups.flatMap(g=>g.tasks)); }
-function findTask(id) { for(const s of state.sections) for(const g of s.groups){const t=g.tasks.find(t=>t.id===id);if(t)return{task:t,section:s};} return null; }
-function showToast(msg) { const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000); }
-function getEntryId(e){return typeof e==='string'?e:e.id;}
-function getEntryTime(e){return typeof e==='object'&&e.time?e.time:null;}
-function formatDeadline(d){
-  if(!d)return null;
-  const today=new Date();today.setHours(0,0,0,0);
-  const dd=new Date(d+'T00:00:00');
-  const diff=Math.round((dd-today)/86400000);
-  if(diff<0)return{text:`Overdue ${Math.abs(diff)}d`,cls:'overdue'};
-  if(diff===0)return{text:'Due today',cls:'soon'};
-  if(diff===1)return{text:'Due tomorrow',cls:'soon'};
-  if(diff<=7)return{text:`Due in ${diff}d`,cls:'soon'};
-  return{text:`Due ${dd.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`,cls:'ok'};
+function allTasks() { return state.sections.flatMap(s => s.groups.flatMap(g => g.tasks)); }
+function findTask(id) {
+  for (const s of state.sections) {
+    for (const g of s.groups) {
+      const t = g.tasks.find(t => t.id === id);
+      if (t) return { task: t, section: s };
+    }
+  }
+  return null;
 }
-function updateStats(){
-  const tasks=allTasks(),done=tasks.filter(t=>t.done).length;
-  document.getElementById('statDone').textContent=done;
-  document.getElementById('statTotal').textContent=tasks.length;
-  document.getElementById('statToday').textContent=state.todayIds.length;
-  document.getElementById('todayCount').textContent=state.todayIds.length;
-  const pct=tasks.length?Math.round(done/tasks.length*100):0;
-  document.getElementById('progressBar').style.width=pct+'%';
+function showToast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2000); }
+function getEntryId(e) { return typeof e === 'string' ? e : e.id; }
+function getEntryTime(e) { return typeof e === 'object' && e.time ? e.time : null; }
+function formatDeadline(d) {
+  if (!d) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const dd = new Date(d + 'T00:00:00');
+  const diff = Math.round((dd - today) / 86400000);
+  if (diff < 0) return { text: `Overdue ${Math.abs(diff)}d`, cls: 'overdue' };
+  if (diff === 0) return { text: 'Due today', cls: 'soon' };
+  if (diff === 1) return { text: 'Due tomorrow', cls: 'soon' };
+  if (diff <= 7) return { text: `Due in ${diff}d`, cls: 'soon' };
+  return { text: `Due ${dd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`, cls: 'ok' };
 }
-function updateGroupSelect(){
-  const sel=document.getElementById('aiGroupSelect'),cur=sel.value;
-  sel.innerHTML='<option value="">— choose a group —</option>';
-  state.sections.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
-  if(cur)sel.value=cur;
+function updateStats() {
+  const tasks = allTasks(), done = tasks.filter(t => t.done).length;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statTotal').textContent = tasks.length;
+  document.getElementById('statToday').textContent = state.todayIds.length;
+  document.getElementById('todayCount').textContent = state.todayIds.length;
+  const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
 }
-(function(){document.getElementById('todayDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});})();
+function updateGroupSelect() {
+  const sel = document.getElementById('aiGroupSelect'), cur = sel.value;
+  sel.innerHTML = '<option value="">— choose a group —</option>';
+  state.sections.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sel.appendChild(o); });
+  if (cur) sel.value = cur;
+}
+(function () { document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }); })();
 
-function saveState(){try{localStorage.setItem('ge_tasks_v4',JSON.stringify(state));}catch(e){}}
-function loadState(){
-  try{
-    const saved=localStorage.getItem('ge_tasks_v4');
-    if(saved){state=JSON.parse(saved);if(!state.todayIds)state.todayIds=[];state.todayIds=state.todayIds.map(e=>typeof e==='string'?{id:e,time:null}:e);}
-  }catch(e){}
+function saveState() { try { localStorage.setItem('ge_tasks_v6', JSON.stringify(state)); } catch (e) { } }
+function loadState() {
+  try {
+    const saved = localStorage.getItem('ge_tasks_v6');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (!parsed.todayIds) parsed.todayIds = [];
+      parsed.todayIds = parsed.todayIds.map(e => typeof e === 'string' ? { id: e, time: null } : e);
+      // Advance idCounter past any IDs in saved state so new IDs never collide
+      parsed.sections.forEach(s => {
+        const numericPart = parseInt(s.id.replace(/\D/g, ''));
+        if (!isNaN(numericPart) && numericPart >= idCounter) idCounter = numericPart + 1;
+        s.groups.forEach(g => g.tasks.forEach(t => {
+          const n = parseInt(t.id.replace(/\D/g, ''));
+          if (!isNaN(n) && n >= idCounter) idCounter = n + 1;
+        }));
+      });
+      state = parsed;
+    }
+  } catch (e) { }
 }
 
-let todayDragId=null,dragTaskId=null;
-function renderToday(){
-  const zone=document.getElementById('todayDropZone');
-  const empty=document.getElementById('todayEmpty');
-  zone.querySelectorAll('.today-task').forEach(el=>el.remove());
-  state.todayIds=state.todayIds.map(e=>typeof e==='string'?{id:e,time:null}:e).filter(e=>findTask(e.id));
-  if(state.todayIds.length===0){empty.style.display='';updateStats();return;}
-  empty.style.display='none';
-  const timed=state.todayIds.filter(e=>e.time).sort((a,b)=>a.time.localeCompare(b.time));
-  const untimed=state.todayIds.filter(e=>!e.time);
-  [...timed,...untimed].forEach(entry=>{
-    const{id,time}=entry;
-    const found=findTask(id);if(!found)return;
-    const{task,section}=found;
-    const isInbox=section.id==='inbox';
-    const dl=task.deadline?formatDeadline(task.deadline):null;
-    const div=document.createElement('div');
-    div.className='today-task'+(task.done?' done-today':'')+(isInbox?' inbox-item':'');
-    div.dataset.id=id;div.draggable=true;
-    div.innerHTML=`
-      <div class="today-task-check" onclick="toggleTodayDone('${id}')"></div>
+let todayDragId = null, dragTaskId = null;
+function renderToday() {
+  const zone = document.getElementById('todayDropZone');
+  const empty = document.getElementById('todayEmpty');
+  zone.querySelectorAll('.today-task').forEach(el => el.remove());
+  state.todayIds = state.todayIds.map(e => typeof e === 'string' ? { id: e, time: null } : e).filter(e => findTask(e.id));
+  if (state.todayIds.length === 0) { empty.style.display = ''; updateStats(); return; }
+  empty.style.display = 'none';
+  const timed = state.todayIds.filter(e => e.time).sort((a, b) => a.time.localeCompare(b.time));
+  const untimed = state.todayIds.filter(e => !e.time);
+  [...timed, ...untimed].forEach(entry => {
+    const { id, time } = entry;
+    const found = findTask(id); if (!found) return;
+    const { task, section } = found;
+    const isInbox = section.name === 'Inbox';
+    const dl = task.deadline ? formatDeadline(task.deadline) : null;
+    const div = document.createElement('div');
+    div.className = 'today-task' + (task.done ? ' done-today' : '') + (isInbox ? ' inbox-item' : '');
+    div.dataset.id = id; div.draggable = true;
+    div.innerHTML = `
+      <div class="today-task-check" data-action="today-toggle" data-id="${id}"></div>
       <div class="today-task-body">
         <div class="today-task-label">${task.label}</div>
         <div class="today-task-meta">
-          ${time?`<span class="today-task-time">⏰ ${time}</span>`:''}
-          <span class="today-task-from">${isInbox?'📥 Inbox':section.name}</span>
-          ${dl?`<span class="today-task-deadline ${dl.cls}">${dl.text}</span>`:''}
+          ${time ? `<span class="today-task-time">⏰ ${time}</span>` : ''}
+          <span class="today-task-from">${isInbox ? '📥 Inbox' : section.name}</span>
+          ${dl ? `<span class="today-task-deadline ${dl.cls}">${dl.text}</span>` : ''}
         </div>
       </div>
       <div class="today-task-actions">
-        <button class="today-task-btn" onclick="openTimeModal('${id}')" title="Set time">⏰</button>
-        <button class="today-task-btn remove" onclick="removeFromToday('${id}')" title="Remove">✕</button>
+        <button class="today-task-btn" data-action="today-time" data-id="${id}" title="Set time">⏰</button>
+        <button class="today-task-btn remove" data-action="today-remove" data-id="${id}" title="Remove">✕</button>
       </div>`;
-    div.addEventListener('dragstart',e=>{todayDragId=id;div.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-    div.addEventListener('dragend',()=>{todayDragId=null;div.classList.remove('dragging');});
+    div.addEventListener('dragstart', e => { todayDragId = id; div.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    div.addEventListener('dragend', () => { todayDragId = null; div.classList.remove('dragging'); });
     zone.appendChild(div);
   });
   updateStats();
 }
-function toggleTodayDone(id){const f=findTask(id);if(f)f.task.done=!f.task.done;saveState();render();}
-function removeFromToday(id){state.todayIds=state.todayIds.filter(e=>getEntryId(e)!==id);saveState();render();showToast('Removed from Today');}
-const todayZone=document.getElementById('todayDropZone');
-todayZone.addEventListener('dragover',e=>{e.preventDefault();todayZone.style.background='rgba(45,94,58,0.08)';});
-todayZone.addEventListener('dragleave',()=>{todayZone.style.background='';});
-todayZone.addEventListener('drop',e=>{
-  e.preventDefault();todayZone.style.background='';
-  if(dragTaskId&&!state.todayIds.some(en=>getEntryId(en)===dragTaskId)){
-    state.todayIds.push({id:dragTaskId,time:null});saveState();render();showToast('Added to Today ☀');
+
+// ── Delegated click handler for Today panel ──
+document.getElementById('todayDropZone').addEventListener('click', e => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  e.stopPropagation();
+  const action = el.dataset.action;
+  const id = el.dataset.id;
+  if (action === 'today-toggle') { toggleTodayDone(id); }
+  else if (action === 'today-time') { openTimeModal(id); }
+  else if (action === 'today-remove') { removeFromToday(id); }
+});
+
+function toggleTodayDone(id) { const f = findTask(id); if (f) f.task.done = !f.task.done; saveState(); render(); }
+function removeFromToday(id) { state.todayIds = state.todayIds.filter(e => getEntryId(e) !== id); saveState(); render(); showToast('Removed from Today'); }
+
+const todayZone = document.getElementById('todayDropZone');
+todayZone.addEventListener('dragover', e => { e.preventDefault(); todayZone.style.background = 'rgba(45,94,58,0.08)'; });
+todayZone.addEventListener('dragleave', () => { todayZone.style.background = ''; });
+todayZone.addEventListener('drop', e => {
+  e.preventDefault(); todayZone.style.background = '';
+  if (dragTaskId && !state.todayIds.some(en => getEntryId(en) === dragTaskId)) {
+    state.todayIds.push({ id: dragTaskId, time: null }); saveState(); render(); showToast('Added to Today ☀');
   }
 });
 
 // Time modal
-let timingTaskId=null;
-function openTimeModal(id){
-  timingTaskId=id;
-  const entry=state.todayIds.find(e=>getEntryId(e)===id);
-  document.getElementById('tmTime').value=entry?(getEntryTime(entry)||''):'';
+let timingTaskId = null;
+function openTimeModal(id) {
+  timingTaskId = id;
+  const entry = state.todayIds.find(e => getEntryId(e) === id);
+  document.getElementById('tmTime').value = entry ? (getEntryTime(entry) || '') : '';
   document.getElementById('timeModalOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('tmTime').focus(),50);
+  setTimeout(() => document.getElementById('tmTime').focus(), 50);
 }
-document.getElementById('tmTimeSave').addEventListener('click',()=>{
-  if(!timingTaskId)return;
-  const time=document.getElementById('tmTime').value;
-  const entry=state.todayIds.find(e=>getEntryId(e)===timingTaskId);
-  if(entry&&typeof entry==='object')entry.time=time||null;
+document.getElementById('tmTimeSave').addEventListener('click', () => {
+  if (!timingTaskId) return;
+  const time = document.getElementById('tmTime').value;
+  const entry = state.todayIds.find(e => getEntryId(e) === timingTaskId);
+  if (entry && typeof entry === 'object') entry.time = time || null;
   document.getElementById('timeModalOverlay').classList.remove('open');
-  timingTaskId=null;saveState();render();
+  timingTaskId = null; saveState(); render();
 });
-document.getElementById('tmTimeClear').addEventListener('click',()=>{
-  if(!timingTaskId)return;
-  const entry=state.todayIds.find(e=>getEntryId(e)===timingTaskId);
-  if(entry&&typeof entry==='object')entry.time=null;
+document.getElementById('tmTimeClear').addEventListener('click', () => {
+  if (!timingTaskId) return;
+  const entry = state.todayIds.find(e => getEntryId(e) === timingTaskId);
+  if (entry && typeof entry === 'object') entry.time = null;
   document.getElementById('timeModalOverlay').classList.remove('open');
-  timingTaskId=null;saveState();render();
+  timingTaskId = null; saveState(); render();
 });
-document.getElementById('tmTimeCancel').addEventListener('click',()=>{document.getElementById('timeModalOverlay').classList.remove('open');timingTaskId=null;});
-document.getElementById('timeModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('timeModalOverlay')){document.getElementById('timeModalOverlay').classList.remove('open');timingTaskId=null;}});
+document.getElementById('tmTimeCancel').addEventListener('click', () => { document.getElementById('timeModalOverlay').classList.remove('open'); timingTaskId = null; });
+document.getElementById('timeModalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('timeModalOverlay')) { document.getElementById('timeModalOverlay').classList.remove('open'); timingTaskId = null; } });
 
 // Inbox
-function addInboxTask(){
-  const input=document.getElementById('inboxInput');
-  const label=input.value.trim();if(!label)return;
-  const inbox=state.sections.find(s=>s.id==='inbox');
-  const task={id:newId(),label,sub:'',priority:'medium',done:false,deadline:null};
+function addInboxTask() {
+  const input = document.getElementById('inboxInput');
+  const label = input.value.trim(); if (!label) return;
+  const inbox = state.sections.find(s => s.name === 'Inbox');
+  const task = { id: newId(), label, sub: '', priority: 'medium', done: false, deadline: null };
   inbox.groups[0].tasks.push(task);
-  state.todayIds.push({id:task.id,time:null});
-  input.value='';saveState();render();showToast('Added to Inbox & Today');
+  state.todayIds.push({ id: task.id, time: null });
+  input.value = ''; saveState(); render(); showToast('Added to Inbox & Today');
 }
-document.getElementById('inboxInput').addEventListener('keydown',e=>{if(e.key==='Enter')addInboxTask();});
+document.getElementById('inboxInput').addEventListener('keydown', e => { if (e.key === 'Enter') addInboxTask(); });
 
-// Board render
-let openDropdown=null;
-function closeAllDropdowns(){if(openDropdown){openDropdown.remove();openDropdown=null;}}
-document.addEventListener('click',closeAllDropdowns);
+// ── Board render ──
+let openDropdown = null;
+function closeAllDropdowns() { if (openDropdown) { openDropdown.remove(); openDropdown = null; } }
+document.addEventListener('click', closeAllDropdowns);
 
-function render(){
-  const board=document.getElementById('boardEl');board.innerHTML='';
-  state.sections.forEach(section=>{
-    const isInbox=section.id==='inbox';
-    const col=document.createElement('div');
-    col.className='column'+(isInbox?' inbox-col':'');
-    const totalTasks=section.groups.flatMap(g=>g.tasks).length;
-    const doneTasks=section.groups.flatMap(g=>g.tasks).filter(t=>t.done).length;
-    const colHeader=document.createElement('div');colHeader.className='column-header';
-    colHeader.innerHTML=`
+function render() {
+  const board = document.getElementById('boardEl'); board.innerHTML = '';
+  state.sections.forEach(section => {
+    const isInbox = section.name === 'Inbox';
+    const col = document.createElement('div');
+    col.className = 'column' + (isInbox ? ' inbox-col' : '');
+    const totalTasks = section.groups.flatMap(g => g.tasks).length;
+    const doneTasks = section.groups.flatMap(g => g.tasks).filter(t => t.done).length;
+    const colHeader = document.createElement('div'); colHeader.className = 'column-header';
+    colHeader.innerHTML = `
       <div class="column-dot dot-${section.color}"></div>
-      <span class="column-name">${isInbox?'📥 ':''}${section.name}</span>
+      <span class="column-name">${isInbox ? '📥 ' : ''}${section.name}</span>
       <span class="column-count">${totalTasks}</span>
       <span class="column-progress">${doneTasks}/${totalTasks}</span>
-      ${!isInbox?'<button class="col-menu-btn">···</button>':''}`;
-    if(!isInbox){
-      colHeader.querySelector('.col-menu-btn').addEventListener('click',e=>{
-        e.stopPropagation();closeAllDropdowns();
-        const dd=document.createElement('div');dd.className='col-dropdown';dd.style.cssText='position:absolute;top:calc(100% + 2px);right:0;z-index:150;';
-        dd.innerHTML=`<button class="col-dropdown-item" data-action="edit">✏ Edit name & colour</button><button class="col-dropdown-item" data-action="addgroup">＋ Add sub-section</button><button class="col-dropdown-item danger" data-action="delete">✕ Delete group</button>`;
-        dd.addEventListener('click',ev=>{ev.stopPropagation();const a=ev.target.dataset.action;if(a==='edit')openColEdit(section.id);if(a==='addgroup')addSubGroup(section.id);if(a==='delete')deleteColumn(section.id);closeAllDropdowns();});
-        colHeader.appendChild(dd);openDropdown=dd;
+      ${!isInbox ? '<button class="col-menu-btn">···</button>' : ''}`;
+    if (!isInbox) {
+      colHeader.querySelector('.col-menu-btn').addEventListener('click', e => {
+        e.stopPropagation(); closeAllDropdowns();
+        const dd = document.createElement('div'); dd.className = 'col-dropdown'; dd.style.cssText = 'position:absolute;top:calc(100% + 2px);right:0;z-index:150;';
+        dd.innerHTML = `<button class="col-dropdown-item" data-action="edit">✏ Edit name & colour</button><button class="col-dropdown-item" data-action="addgroup">＋ Add sub-section</button><button class="col-dropdown-item danger" data-action="delete">✕ Delete group</button>`;
+        dd.addEventListener('click', ev => {
+          ev.stopPropagation();
+          const a = ev.target.dataset.action;
+          if (a === 'edit') openColEdit(section.id);
+          if (a === 'addgroup') addSubGroup(section.id);
+          if (a === 'delete') deleteColumn(section.id);
+          closeAllDropdowns();
+        });
+        colHeader.appendChild(dd); openDropdown = dd;
       });
     }
     col.appendChild(colHeader);
-    const colBody=document.createElement('div');colBody.className='column-body';
-    colBody.addEventListener('dragover',e=>{e.preventDefault();colBody.classList.add('drop-target');});
-    colBody.addEventListener('dragleave',e=>{if(!colBody.contains(e.relatedTarget))colBody.classList.remove('drop-target');});
-    colBody.addEventListener('drop',e=>{
-      e.preventDefault();colBody.classList.remove('drop-target');
-      if(!dragTaskId)return;
-      let moved=null;
-      for(const s of state.sections){for(const g of s.groups){const i=g.tasks.findIndex(t=>t.id===dragTaskId);if(i!==-1){moved=g.tasks.splice(i,1)[0];break;}}if(moved)break;}
-      if(!moved)return;
-      state.sections.find(s=>s.id===section.id).groups.slice(-1)[0].tasks.push(moved);
-      saveState();render();showToast('Task moved');
+    const colBody = document.createElement('div'); colBody.className = 'column-body';
+    colBody.addEventListener('dragover', e => { e.preventDefault(); colBody.classList.add('drop-target'); });
+    colBody.addEventListener('dragleave', e => { if (!colBody.contains(e.relatedTarget)) colBody.classList.remove('drop-target'); });
+    colBody.addEventListener('drop', e => {
+      e.preventDefault(); colBody.classList.remove('drop-target');
+      if (!dragTaskId) return;
+      let moved = null;
+      for (const s of state.sections) { for (const g of s.groups) { const i = g.tasks.findIndex(t => t.id === dragTaskId); if (i !== -1) { moved = g.tasks.splice(i, 1)[0]; break; } } if (moved) break; }
+      if (!moved) return;
+      state.sections.find(s => s.id === section.id).groups.slice(-1)[0].tasks.push(moved);
+      saveState(); render(); showToast('Task moved');
     });
-    section.groups.forEach((group,gIdx)=>{
-      if(group.label!==null){
-        const glRow=document.createElement('div');glRow.className='group-label-row';
-        const glSpan=document.createElement('div');glSpan.className='group-label';glSpan.textContent=group.label||'(unnamed)';glSpan.title='Click to edit';
-        glSpan.addEventListener('click',()=>startEditGroupLabel(glRow,glSpan,section.id,gIdx));
-        const glAct=document.createElement('div');glAct.className='group-label-actions';
-        glAct.innerHTML=`<button class="group-label-btn" onclick="startEditGroupLabel(this.closest('.group-label-row'),this.closest('.group-label-row').querySelector('.group-label'),'${section.id}',${gIdx})">✏</button><button class="group-label-btn danger" onclick="deleteSubGroup('${section.id}',${gIdx})">✕</button>`;
-        glRow.appendChild(glSpan);glRow.appendChild(glAct);colBody.appendChild(glRow);
+
+    section.groups.forEach((group, gIdx) => {
+      if (group.label !== null) {
+        const glRow = document.createElement('div'); glRow.className = 'group-label-row';
+        const glSpan = document.createElement('div'); glSpan.className = 'group-label'; glSpan.textContent = group.label || '(unnamed)'; glSpan.title = 'Click to edit';
+        glSpan.addEventListener('click', () => startEditGroupLabel(glRow, glSpan, section.id, gIdx));
+        const glAct = document.createElement('div'); glAct.className = 'group-label-actions';
+        // Use event listeners on buttons rather than inline onclick to capture correct closure values
+        const editBtn = document.createElement('button'); editBtn.className = 'group-label-btn'; editBtn.textContent = '✏';
+        editBtn.addEventListener('click', () => startEditGroupLabel(glRow, glSpan, section.id, gIdx));
+        const delBtn = document.createElement('button'); delBtn.className = 'group-label-btn danger'; delBtn.textContent = '✕';
+        delBtn.addEventListener('click', () => deleteSubGroup(section.id, gIdx));
+        glAct.appendChild(editBtn); glAct.appendChild(delBtn);
+        glRow.appendChild(glSpan); glRow.appendChild(glAct); colBody.appendChild(glRow);
       }
-      group.tasks.forEach(task=>{
-        const row=document.createElement('div');row.className='task-row'+(task.done?' done':'');row.draggable=true;
-        const inToday=state.todayIds.some(e=>getEntryId(e)===task.id);
-        const dl=task.deadline?formatDeadline(task.deadline):null;
-        row.innerHTML=`
+
+      group.tasks.forEach(task => {
+        const row = document.createElement('div');
+        row.className = 'task-row' + (task.done ? ' done' : '');
+        row.draggable = true;
+        // Store all identifiers as data attributes — no inline onclick strings
+        row.dataset.taskId = task.id;
+        row.dataset.sectionId = section.id;
+        row.dataset.gIdx = gIdx;
+
+        const inToday = state.todayIds.some(e => getEntryId(e) === task.id);
+        const dl = task.deadline ? formatDeadline(task.deadline) : null;
+        row.innerHTML = `
           <div class="task-drag-handle">⠿</div>
-          <div class="task-checkbox" onclick="toggleTask('${task.id}')"></div>
+          <div class="task-checkbox" data-action="toggle" data-id="${task.id}"></div>
           <div class="task-content">
             <div class="task-label">${task.label}</div>
-            ${task.sub?`<div class="task-sub">${task.sub}</div>`:''}
-            ${dl?`<div class="task-deadline ${dl.cls}">📅 ${dl.text}</div>`:''}
+            ${task.sub ? `<div class="task-sub">${task.sub}</div>` : ''}
+            ${dl ? `<div class="task-deadline ${dl.cls}">📅 ${dl.text}</div>` : ''}
           </div>
           <div class="task-meta">
             ${priorityBadge(task.priority)}
-            <button class="task-today-btn ${inToday?'in-today':''}" onclick="toggleToday('${task.id}')" title="${inToday?'In Today':'Add to Today'}">☀</button>
-            <button class="task-edit-btn" onclick="openTaskEdit('${task.id}')" title="Edit">✏</button>
-            <button class="task-delete" onclick="deleteTask('${task.id}','${section.id}',${gIdx})" title="Remove">✕</button>
+            <button class="task-today-btn ${inToday ? 'in-today' : ''}" data-action="today" data-id="${task.id}" title="${inToday ? 'In Today' : 'Add to Today'}">☀</button>
+            <button class="task-edit-btn" data-action="edit" data-id="${task.id}" title="Edit">✏</button>
+            <button class="task-delete" data-action="delete" data-id="${task.id}" data-sid="${section.id}" data-gidx="${gIdx}" title="Remove">✕</button>
           </div>`;
-        row.addEventListener('dragstart',e=>{dragTaskId=task.id;row.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',task.id);});
-        row.addEventListener('dragend',()=>{dragTaskId=null;row.classList.remove('dragging');});
+
+        row.addEventListener('dragstart', e => { dragTaskId = task.id; row.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', task.id); });
+        row.addEventListener('dragend', () => { dragTaskId = null; row.classList.remove('dragging'); });
         colBody.appendChild(row);
       });
-      const addRow=document.createElement('div');addRow.className='add-task-row';
-      addRow.innerHTML=`<button class="add-task-btn" onclick="openQuickAdd('${section.id}',${gIdx},this)">+ Add task</button>`;
+
+      const addRow = document.createElement('div'); addRow.className = 'add-task-row';
+      // Use event listener, not inline onclick, so gIdx closure is correct
+      const addBtn = document.createElement('button'); addBtn.className = 'add-task-btn'; addBtn.textContent = '+ Add task';
+      addBtn.addEventListener('click', () => openQuickAdd(section.id, gIdx, addBtn));
+      addRow.appendChild(addBtn);
       colBody.appendChild(addRow);
     });
-    if(!isInbox){const agRow=document.createElement('div');agRow.className='add-group-row';agRow.innerHTML=`<button class="add-group-btn" onclick="addSubGroup('${section.id}')">＋ Add sub-section</button>`;colBody.appendChild(agRow);}
-    col.appendChild(colBody);board.appendChild(col);
+
+    if (!isInbox) {
+      const agRow = document.createElement('div'); agRow.className = 'add-group-row';
+      const agBtn = document.createElement('button'); agBtn.className = 'add-group-btn'; agBtn.textContent = '＋ Add sub-section';
+      agBtn.addEventListener('click', () => addSubGroup(section.id));
+      agRow.appendChild(agBtn);
+      colBody.appendChild(agRow);
+    }
+    col.appendChild(colBody);
+    board.appendChild(col);
   });
-  const newBtn=document.createElement('button');newBtn.className='new-column-btn';newBtn.textContent='+ Add group';
-  newBtn.addEventListener('click',()=>{document.getElementById('modalName').value='';document.getElementById('modalOverlay').classList.add('open');document.getElementById('modalName').focus();});
+
+  const newBtn = document.createElement('button'); newBtn.className = 'new-column-btn'; newBtn.textContent = '+ Add group';
+  newBtn.addEventListener('click', () => { document.getElementById('modalName').value = ''; document.getElementById('modalOverlay').classList.add('open'); document.getElementById('modalName').focus(); });
   board.appendChild(newBtn);
-  renderToday();updateGroupSelect();
+  renderToday(); updateGroupSelect();
 }
 
-function toggleTask(id){const f=findTask(id);if(f)f.task.done=!f.task.done;saveState();render();}
-function deleteTask(id,sectionId,gIdx){
-  const s=state.sections.find(s=>s.id===sectionId);if(!s)return;
-  s.groups[gIdx].tasks=s.groups[gIdx].tasks.filter(t=>t.id!==id);
-  state.todayIds=state.todayIds.filter(e=>getEntryId(e)!==id);
-  saveState();render();showToast('Task removed');
+// ── SINGLE delegated click handler for the entire board ──
+// This is the key fix: instead of inline onclick="toggleTask('w4')" scattered across
+// dynamically-built innerHTML, we listen once on the board container and read
+// data attributes to determine what to do. This is reliable regardless of
+// re-render timing, ID format, or string escaping.
+document.getElementById('boardEl').addEventListener('click', e => {
+  const actionEl = e.target.closest('[data-action]');
+  if (!actionEl) return;
+  e.stopPropagation();
+
+  const action = actionEl.dataset.action;
+  const id = actionEl.dataset.id;
+
+  if (action === 'toggle') {
+    toggleTask(id);
+  } else if (action === 'today') {
+    toggleToday(id);
+  } else if (action === 'edit') {
+    openTaskEdit(id);
+  } else if (action === 'delete') {
+    const sid = actionEl.dataset.sid;
+    const gIdx = parseInt(actionEl.dataset.gidx, 10);
+    deleteTask(id, sid, gIdx);
+  }
+});
+
+function toggleTask(id) {
+  const f = findTask(id);
+  if (f) f.task.done = !f.task.done;
+  saveState(); render();
 }
-function toggleToday(id){
-  if(state.todayIds.some(e=>getEntryId(e)===id)){state.todayIds=state.todayIds.filter(e=>getEntryId(e)!==id);showToast('Removed from Today');}
-  else{state.todayIds.push({id,time:null});showToast('Added to Today ☀');}
-  saveState();render();
+function deleteTask(id, sectionId, gIdx) {
+  const s = state.sections.find(s => s.id === sectionId); if (!s) return;
+  s.groups[gIdx].tasks = s.groups[gIdx].tasks.filter(t => t.id !== id);
+  state.todayIds = state.todayIds.filter(e => getEntryId(e) !== id);
+  saveState(); render(); showToast('Task removed');
+}
+function toggleToday(id) {
+  if (state.todayIds.some(e => getEntryId(e) === id)) { state.todayIds = state.todayIds.filter(e => getEntryId(e) !== id); showToast('Removed from Today'); }
+  else { state.todayIds.push({ id, time: null }); showToast('Added to Today ☀'); }
+  saveState(); render();
 }
 
 // Quick add
-let activeQuickAdd=null;
-function openQuickAdd(sectionId,gIdx,btn){
-  if(activeQuickAdd){activeQuickAdd.remove();activeQuickAdd=null;}
-  const form=document.createElement('div');form.className='quick-add-form open';
-  form.innerHTML=`
+let activeQuickAdd = null;
+function openQuickAdd(sectionId, gIdx, btn) {
+  if (activeQuickAdd) { activeQuickAdd.remove(); activeQuickAdd = null; }
+  const form = document.createElement('div'); form.className = 'quick-add-form open';
+  form.innerHTML = `
     <input class="quick-add-input" placeholder="Task title…" id="qa-label"/>
     <textarea class="quick-add-sub" placeholder="Optional note…" id="qa-sub" rows="2"></textarea>
     <div class="quick-add-row">
@@ -857,303 +970,299 @@ function openQuickAdd(sectionId,gIdx,btn){
         <option value="lower">Lower</option><option value="tbd">TBD</option>
       </select>
       <input class="deadline-input-sm" type="date" id="qa-deadline" title="Deadline"/>
-      <button class="btn-sm btn-sm-primary" onclick="confirmQuickAdd('${sectionId}',${gIdx})">Add</button>
-      <button class="btn-sm btn-sm-cancel" onclick="cancelQuickAdd()">Cancel</button>
     </div>`;
-  btn.closest('.add-task-row').after(form);activeQuickAdd=form;
+  const btnRow = document.createElement('div'); btnRow.style.cssText = 'display:flex;gap:0.35rem;margin-top:0.35rem;';
+  const addB = document.createElement('button'); addB.className = 'btn-sm btn-sm-primary'; addB.textContent = 'Add';
+  addB.addEventListener('click', () => confirmQuickAdd(sectionId, gIdx));
+  const canB = document.createElement('button'); canB.className = 'btn-sm btn-sm-cancel'; canB.textContent = 'Cancel';
+  canB.addEventListener('click', cancelQuickAdd);
+  btnRow.appendChild(addB); btnRow.appendChild(canB);
+  form.appendChild(btnRow);
+  btn.closest('.add-task-row').after(form);
+  activeQuickAdd = form;
   form.querySelector('#qa-label').focus();
-  form.querySelector('#qa-label').addEventListener('keydown',e=>{if(e.key==='Enter')confirmQuickAdd(sectionId,gIdx);if(e.key==='Escape')cancelQuickAdd();});
+  form.querySelector('#qa-label').addEventListener('keydown', e => { if (e.key === 'Enter') confirmQuickAdd(sectionId, gIdx); if (e.key === 'Escape') cancelQuickAdd(); });
 }
-function cancelQuickAdd(){if(activeQuickAdd){activeQuickAdd.remove();activeQuickAdd=null;}}
-function confirmQuickAdd(sectionId,gIdx){
-  const label=document.getElementById('qa-label')?.value.trim();if(!label)return;
-  const sub=document.getElementById('qa-sub')?.value.trim();
-  const priority=document.getElementById('qa-priority')?.value||'medium';
-  const deadline=document.getElementById('qa-deadline')?.value||null;
-  const section=state.sections.find(s=>s.id===sectionId);if(!section)return;
-  section.groups[gIdx].tasks.push({id:newId(),label,sub,priority,done:false,deadline});
-  cancelQuickAdd();saveState();render();showToast('Task added');
+function cancelQuickAdd() { if (activeQuickAdd) { activeQuickAdd.remove(); activeQuickAdd = null; } }
+function confirmQuickAdd(sectionId, gIdx) {
+  const label = document.getElementById('qa-label')?.value.trim(); if (!label) return;
+  const sub = document.getElementById('qa-sub')?.value.trim();
+  const priority = document.getElementById('qa-priority')?.value || 'medium';
+  const deadline = document.getElementById('qa-deadline')?.value || null;
+  const section = state.sections.find(s => s.id === sectionId); if (!section) return;
+  section.groups[gIdx].tasks.push({ id: newId(), label, sub, priority, done: false, deadline });
+  cancelQuickAdd(); saveState(); render(); showToast('Task added');
 }
 
 // Task edit modal
-let editingTaskId=null;
-function openTaskEdit(id){
-  const found=findTask(id);if(!found)return;
-  editingTaskId=id;const task=found.task;
-  document.getElementById('tmLabel').value=task.label;
-  document.getElementById('tmSub').value=task.sub||'';
-  document.getElementById('tmPriority').value=task.priority;
-  document.getElementById('tmDeadline').value=task.deadline||'';
+let editingTaskId = null;
+function openTaskEdit(id) {
+  const found = findTask(id); if (!found) return;
+  editingTaskId = id; const task = found.task;
+  document.getElementById('tmLabel').value = task.label;
+  document.getElementById('tmSub').value = task.sub || '';
+  document.getElementById('tmPriority').value = task.priority;
+  document.getElementById('tmDeadline').value = task.deadline || '';
   document.getElementById('taskModalOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('tmLabel').focus(),50);
+  setTimeout(() => document.getElementById('tmLabel').focus(), 50);
 }
-document.getElementById('tmCancel').addEventListener('click',()=>{document.getElementById('taskModalOverlay').classList.remove('open');editingTaskId=null;});
-document.getElementById('taskModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('taskModalOverlay')){document.getElementById('taskModalOverlay').classList.remove('open');editingTaskId=null;}});
-document.getElementById('tmSave').addEventListener('click',()=>{
-  if(!editingTaskId)return;const found=findTask(editingTaskId);if(!found)return;
-  const label=document.getElementById('tmLabel').value.trim();if(!label)return;
-  found.task.label=label;found.task.sub=document.getElementById('tmSub').value.trim();
-  found.task.priority=document.getElementById('tmPriority').value;
-  found.task.deadline=document.getElementById('tmDeadline').value||null;
-  document.getElementById('taskModalOverlay').classList.remove('open');editingTaskId=null;saveState();render();showToast('Task updated');
+document.getElementById('tmCancel').addEventListener('click', () => { document.getElementById('taskModalOverlay').classList.remove('open'); editingTaskId = null; });
+document.getElementById('taskModalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('taskModalOverlay')) { document.getElementById('taskModalOverlay').classList.remove('open'); editingTaskId = null; } });
+document.getElementById('tmSave').addEventListener('click', () => {
+  if (!editingTaskId) return; const found = findTask(editingTaskId); if (!found) return;
+  const label = document.getElementById('tmLabel').value.trim(); if (!label) return;
+  found.task.label = label; found.task.sub = document.getElementById('tmSub').value.trim();
+  found.task.priority = document.getElementById('tmPriority').value;
+  found.task.deadline = document.getElementById('tmDeadline').value || null;
+  document.getElementById('taskModalOverlay').classList.remove('open'); editingTaskId = null; saveState(); render(); showToast('Task updated');
 });
-document.getElementById('tmLabel').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('tmSave').click();});
+document.getElementById('tmLabel').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('tmSave').click(); });
 
 // Column edit/delete
-let editingColId=null,colEditColor='red';
-function openColEdit(id){
-  const s=state.sections.find(s=>s.id===id);if(!s)return;
-  editingColId=id;colEditColor=s.color;
-  document.getElementById('colEditName').value=s.name;
-  document.querySelectorAll('#colEditColorPicker .color-option').forEach(o=>o.classList.toggle('selected',o.dataset.color===s.color));
-  document.getElementById('colEditOverlay').classList.add('open');setTimeout(()=>document.getElementById('colEditName').focus(),50);
+let editingColId = null, colEditColor = 'red';
+function openColEdit(id) {
+  const s = state.sections.find(s => s.id === id); if (!s) return;
+  editingColId = id; colEditColor = s.color;
+  document.getElementById('colEditName').value = s.name;
+  document.querySelectorAll('#colEditColorPicker .color-option').forEach(o => o.classList.toggle('selected', o.dataset.color === s.color));
+  document.getElementById('colEditOverlay').classList.add('open'); setTimeout(() => document.getElementById('colEditName').focus(), 50);
 }
-document.getElementById('colEditCancel').addEventListener('click',()=>{document.getElementById('colEditOverlay').classList.remove('open');editingColId=null;});
-document.getElementById('colEditOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('colEditOverlay')){document.getElementById('colEditOverlay').classList.remove('open');editingColId=null;}});
-document.querySelectorAll('#colEditColorPicker .color-option').forEach(el=>{el.addEventListener('click',()=>{document.querySelectorAll('#colEditColorPicker .color-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');colEditColor=el.dataset.color;});});
-document.getElementById('colEditSave').addEventListener('click',()=>{
-  const name=document.getElementById('colEditName').value.trim();if(!name||!editingColId)return;
-  const s=state.sections.find(s=>s.id===editingColId);if(s){s.name=name;s.color=colEditColor;}
-  document.getElementById('colEditOverlay').classList.remove('open');editingColId=null;saveState();render();showToast('Group updated');
+document.getElementById('colEditCancel').addEventListener('click', () => { document.getElementById('colEditOverlay').classList.remove('open'); editingColId = null; });
+document.getElementById('colEditOverlay').addEventListener('click', e => { if (e.target === document.getElementById('colEditOverlay')) { document.getElementById('colEditOverlay').classList.remove('open'); editingColId = null; } });
+document.querySelectorAll('#colEditColorPicker .color-option').forEach(el => { el.addEventListener('click', () => { document.querySelectorAll('#colEditColorPicker .color-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); colEditColor = el.dataset.color; }); });
+document.getElementById('colEditSave').addEventListener('click', () => {
+  const name = document.getElementById('colEditName').value.trim(); if (!name || !editingColId) return;
+  const s = state.sections.find(s => s.id === editingColId); if (s) { s.name = name; s.color = colEditColor; }
+  document.getElementById('colEditOverlay').classList.remove('open'); editingColId = null; saveState(); render(); showToast('Group updated');
 });
-document.getElementById('colEditName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('colEditSave').click();});
-function deleteColumn(id){
-  if(!confirm('Delete this entire group and all its tasks? This cannot be undone.'))return;
-  const s=state.sections.find(s=>s.id===id);
-  if(s){const ids=s.groups.flatMap(g=>g.tasks.map(t=>t.id));state.todayIds=state.todayIds.filter(e=>!ids.includes(getEntryId(e)));}
-  state.sections=state.sections.filter(s=>s.id!==id);saveState();render();showToast('Group deleted');
+document.getElementById('colEditName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('colEditSave').click(); });
+function deleteColumn(id) {
+  if (!confirm('Delete this entire group and all its tasks? This cannot be undone.')) return;
+  const s = state.sections.find(s => s.id === id);
+  if (s) { const ids = s.groups.flatMap(g => g.tasks.map(t => t.id)); state.todayIds = state.todayIds.filter(e => !ids.includes(getEntryId(e))); }
+  state.sections = state.sections.filter(s => s.id !== id); saveState(); render(); showToast('Group deleted');
 }
-function addSubGroup(id){const s=state.sections.find(s=>s.id===id);if(!s)return;s.groups.push({label:'New section',tasks:[]});saveState();render();showToast('Sub-section added');}
-function startEditGroupLabel(row,span,sectionId,gIdx){
-  const s=state.sections.find(s=>s.id===sectionId);if(!s)return;
-  const group=s.groups[gIdx];
-  const input=document.createElement('input');input.className='group-label-edit-input';input.value=group.label||'';input.placeholder='Section name…';
-  span.replaceWith(input);input.focus();input.select();
-  const save=()=>{group.label=input.value.trim()||'Section';saveState();render();};
-  input.addEventListener('blur',save);
-  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save();}if(e.key==='Escape')render();});
+function addSubGroup(id) { const s = state.sections.find(s => s.id === id); if (!s) return; s.groups.push({ label: 'New section', tasks: [] }); saveState(); render(); showToast('Sub-section added'); }
+function startEditGroupLabel(row, span, sectionId, gIdx) {
+  const s = state.sections.find(s => s.id === sectionId); if (!s) return;
+  const group = s.groups[gIdx];
+  const input = document.createElement('input'); input.className = 'group-label-edit-input'; input.value = group.label || ''; input.placeholder = 'Section name…';
+  span.replaceWith(input); input.focus(); input.select();
+  const save = () => { group.label = input.value.trim() || 'Section'; saveState(); render(); };
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } if (e.key === 'Escape') render(); });
 }
-function deleteSubGroup(sectionId,gIdx){
-  const s=state.sections.find(s=>s.id===sectionId);if(!s)return;
-  const group=s.groups[gIdx];
-  if(group.tasks.length>0&&!confirm('Delete this sub-section and all its tasks?'))return;
-  group.tasks.forEach(t=>{state.todayIds=state.todayIds.filter(e=>getEntryId(e)!==t.id);});
-  s.groups.splice(gIdx,1);if(s.groups.length===0)s.groups.push({label:null,tasks:[]});
-  saveState();render();showToast('Sub-section deleted');
+function deleteSubGroup(sectionId, gIdx) {
+  const s = state.sections.find(s => s.id === sectionId); if (!s) return;
+  const group = s.groups[gIdx];
+  if (group.tasks.length > 0 && !confirm('Delete this sub-section and all its tasks?')) return;
+  group.tasks.forEach(t => { state.todayIds = state.todayIds.filter(e => getEntryId(e) !== t.id); });
+  s.groups.splice(gIdx, 1); if (s.groups.length === 0) s.groups.push({ label: null, tasks: [] });
+  saveState(); render(); showToast('Sub-section deleted');
 }
 
 // New group modal
-let selectedColor='red';
-document.getElementById('modalCancel').addEventListener('click',()=>document.getElementById('modalOverlay').classList.remove('open'));
-document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('modalOverlay'))document.getElementById('modalOverlay').classList.remove('open');});
-document.querySelectorAll('#colorPicker .color-option').forEach(el=>{el.addEventListener('click',()=>{document.querySelectorAll('#colorPicker .color-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');selectedColor=el.dataset.color;});});
-document.getElementById('modalConfirm').addEventListener('click',()=>{
-  const name=document.getElementById('modalName').value.trim();if(!name)return;
-  state.sections.push({id:newSId(),name,color:selectedColor,groups:[{label:null,tasks:[]}]});
-  document.getElementById('modalOverlay').classList.remove('open');saveState();render();showToast('Group created');
+let selectedColor = 'red';
+document.getElementById('modalCancel').addEventListener('click', () => document.getElementById('modalOverlay').classList.remove('open'));
+document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('modalOverlay')) document.getElementById('modalOverlay').classList.remove('open'); });
+document.querySelectorAll('#colorPicker .color-option').forEach(el => { el.addEventListener('click', () => { document.querySelectorAll('#colorPicker .color-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); selectedColor = el.dataset.color; }); });
+document.getElementById('modalConfirm').addEventListener('click', () => {
+  const name = document.getElementById('modalName').value.trim(); if (!name) return;
+  state.sections.push({ id: newSId(), name, color: selectedColor, groups: [{ label: null, tasks: [] }] });
+  document.getElementById('modalOverlay').classList.remove('open'); saveState(); render(); showToast('Group created');
 });
-document.getElementById('modalName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('modalConfirm').click();});
+document.getElementById('modalName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('modalConfirm').click(); });
 
 // AI Frame
-let pendingFramed=null;
-document.getElementById('btnFrame').addEventListener('click',async()=>{
-  const raw=document.getElementById('aiInput').value.trim();if(!raw)return;
-  const btn=document.getElementById('btnFrame');btn.disabled=true;btn.textContent='Framing…';
-  document.getElementById('aiThinking').classList.add('visible');document.getElementById('aiPreview').classList.remove('visible');
-  try{
-    const sys=`You are a concise professional task framer for a sustainability consulting project board. Return ONLY valid JSON: {"label":"short action-oriented title (max 12 words, starts with verb)","sub":"one sentence context (max 20 words, or empty string)","priority":"high"|"medium"|"lower"|"tbd"}. No other text.`;
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,system:sys,messages:[{role:'user',content:raw}]})});
-    const data=await res.json();
-    const parsed=JSON.parse((data.content?.find(b=>b.type==='text')?.text||'').replace(/```json|```/g,'').trim());
-    pendingFramed=parsed;
-    document.getElementById('previewLabel').textContent=parsed.label;
-    document.getElementById('previewSub').textContent=parsed.sub||'';
-    document.getElementById('previewBadge').innerHTML=priorityBadge(parsed.priority);
+let pendingFramed = null;
+document.getElementById('btnFrame').addEventListener('click', async () => {
+  const raw = document.getElementById('aiInput').value.trim(); if (!raw) return;
+  const btn = document.getElementById('btnFrame'); btn.disabled = true; btn.textContent = 'Framing…';
+  document.getElementById('aiThinking').classList.add('visible'); document.getElementById('aiPreview').classList.remove('visible');
+  try {
+    const sys = `You are a concise professional task framer for a sustainability consulting project board. Return ONLY valid JSON: {"label":"short action-oriented title (max 12 words, starts with verb)","sub":"one sentence context (max 20 words, or empty string)","priority":"high"|"medium"|"lower"|"tbd"}. No other text.`;
+    const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, system: sys, messages: [{ role: 'user', content: raw }] }) });
+    const data = await res.json();
+    const parsed = JSON.parse((data.content?.find(b => b.type === 'text')?.text || '').replace(/```json|```/g, '').trim());
+    pendingFramed = parsed;
+    document.getElementById('previewLabel').textContent = parsed.label;
+    document.getElementById('previewSub').textContent = parsed.sub || '';
+    document.getElementById('previewBadge').innerHTML = priorityBadge(parsed.priority);
     document.getElementById('aiPreview').classList.add('visible');
-  }catch(err){showToast('Could not frame — adding as-is');addRawTask();}
-  finally{btn.disabled=false;btn.textContent='Frame it ↗';document.getElementById('aiThinking').classList.remove('visible');}
+  } catch (err) { showToast('Could not frame — adding as-is'); addRawTask(); }
+  finally { btn.disabled = false; btn.textContent = 'Frame it ↗'; document.getElementById('aiThinking').classList.remove('visible'); }
 });
-document.getElementById('btnConfirm').addEventListener('click',()=>{
-  if(!pendingFramed)return;
-  addTaskToSection(pendingFramed.label,pendingFramed.sub,pendingFramed.priority,document.getElementById('aiGroupSelect').value);
-  document.getElementById('aiInput').value='';document.getElementById('aiPreview').classList.remove('visible');pendingFramed=null;
+document.getElementById('btnConfirm').addEventListener('click', () => {
+  if (!pendingFramed) return;
+  addTaskToSection(pendingFramed.label, pendingFramed.sub, pendingFramed.priority, document.getElementById('aiGroupSelect').value);
+  document.getElementById('aiInput').value = ''; document.getElementById('aiPreview').classList.remove('visible'); pendingFramed = null;
 });
-document.getElementById('btnDiscard').addEventListener('click',()=>{document.getElementById('aiPreview').classList.remove('visible');pendingFramed=null;});
-document.getElementById('btnAddRaw').addEventListener('click',addRawTask);
-function addRawTask(){
-  const raw=document.getElementById('aiInput').value.trim();if(!raw)return;
-  addTaskToSection(raw,'','medium',document.getElementById('aiGroupSelect').value);
-  document.getElementById('aiInput').value='';document.getElementById('aiPreview').classList.remove('visible');pendingFramed=null;
+document.getElementById('btnDiscard').addEventListener('click', () => { document.getElementById('aiPreview').classList.remove('visible'); pendingFramed = null; });
+document.getElementById('btnAddRaw').addEventListener('click', addRawTask);
+function addRawTask() {
+  const raw = document.getElementById('aiInput').value.trim(); if (!raw) return;
+  addTaskToSection(raw, '', 'medium', document.getElementById('aiGroupSelect').value);
+  document.getElementById('aiInput').value = ''; document.getElementById('aiPreview').classList.remove('visible'); pendingFramed = null;
 }
-function addTaskToSection(label,sub,priority,sectionId){
-  let s=state.sections.find(s=>s.id===sectionId);if(!s)s=state.sections[0];if(!s)return;
-  s.groups.slice(-1)[0].tasks.push({id:newId(),label,sub,priority,done:false,deadline:null});
-  saveState();render();showToast('Task added to '+s.name);
+function addTaskToSection(label, sub, priority, sectionId) {
+  let s = state.sections.find(s => s.id === sectionId); if (!s) s = state.sections[0]; if (!s) return;
+  s.groups.slice(-1)[0].tasks.push({ id: newId(), label, sub, priority, done: false, deadline: null });
+  saveState(); render(); showToast('Task added to ' + s.name);
 }
 
 // ════════════════════════════════════════
 // LEAVE PLANNER
 // ════════════════════════════════════════
 const LV_BH = {
-  2025:['2025-01-01','2025-04-18','2025-04-21','2025-05-05','2025-05-26','2025-08-25','2025-12-25','2025-12-26'],
-  2026:['2026-01-01','2026-04-03','2026-04-06','2026-05-04','2026-05-25','2026-08-31','2026-12-25','2026-12-28'],
-  2027:['2027-01-01','2027-03-26','2027-03-29','2027-05-03','2027-05-31','2027-08-30','2027-12-27','2027-12-28']
+  2025: ['2025-01-01','2025-04-18','2025-04-21','2025-05-05','2025-05-26','2025-08-25','2025-12-25','2025-12-26'],
+  2026: ['2026-01-01','2026-04-03','2026-04-06','2026-05-04','2026-05-25','2026-08-31','2026-12-25','2026-12-28'],
+  2027: ['2027-01-01','2027-03-26','2027-03-29','2027-05-03','2027-05-31','2027-08-30','2027-12-27','2027-12-28']
 };
 
-// Pre-loaded trips from the screenshot
 const DEFAULT_TRIPS = [
-  {name:"Jago's",        start:'2026-04-24',end:'2026-04-26',color:'#F97316',leaveDays:0},
-  {name:'Time with Mimi',start:'2026-04-26',end:'2026-04-28',color:'#EC4899',leaveDays:0},
-  {name:'Magic Wood',    start:'2026-06-06',end:'2026-06-21',color:'#22C55E',leaveDays:6},
-  {name:'Gus & Katie Wedding',start:'2026-07-13',end:'2026-07-15',color:'#8B5CF6',leaveDays:1},
-  {name:'Vastevik',      start:'2026-09-03',end:'2026-09-15',color:'#8B5CF6',leaveDays:3},
-  {name:'Christmas Break',start:'2026-12-24',end:'2026-12-27',color:'#22C55E',leaveDays:0},
-  {name:'New Years',     start:'2026-12-31',end:'2027-01-04',color:'#991B1B',leaveDays:0},
-  {name:'Spain - Sport Trip',start:'2027-03-04',end:'2027-03-16',color:'#EAB308',leaveDays:3}
+  { name: "Jago's",              start: '2026-04-24', end: '2026-04-26', color: '#F97316', leaveDays: 0 },
+  { name: 'Time with Mimi',      start: '2026-04-26', end: '2026-04-28', color: '#EC4899', leaveDays: 0 },
+  { name: 'Magic Wood',          start: '2026-06-06', end: '2026-06-21', color: '#22C55E', leaveDays: 6 },
+  { name: 'Gus & Katie Wedding', start: '2026-07-13', end: '2026-07-15', color: '#8B5CF6', leaveDays: 1 },
+  { name: 'Vastevik',            start: '2026-09-03', end: '2026-09-15', color: '#8B5CF6', leaveDays: 3 },
+  { name: 'Christmas Break',     start: '2026-12-24', end: '2026-12-27', color: '#22C55E', leaveDays: 0 },
+  { name: 'New Years',           start: '2026-12-31', end: '2027-01-04', color: '#991B1B', leaveDays: 0 },
+  { name: 'Spain - Sport Trip',  start: '2027-03-04', end: '2027-03-16', color: '#EAB308', leaveDays: 3 }
 ];
 
-let lvTrips=[];
-let lvYearStart=2026;
-let lvViewYear=2026,lvViewMonth=3;
-let lvCurrentView='month';
-let lvEditingIndex=null;
+let lvTrips = [];
+let lvYearStart = 2026;
+let lvViewYear = 2026, lvViewMonth = 3;
+let lvCurrentView = 'month';
+let lvEditingIndex = null;
 
-function lvSaveData(){
-  const data={trips:lvTrips,leaveYearStart:lvYearStart,totalLeave:document.getElementById('lv-total').value};
-  localStorage.setItem('ge-leave-planner',JSON.stringify(data));
-  const ind=document.getElementById('lv-save-ind');ind.classList.add('show');setTimeout(()=>ind.classList.remove('show'),1500);
+function lvSaveData() {
+  const data = { trips: lvTrips, leaveYearStart: lvYearStart, totalLeave: document.getElementById('lv-total').value };
+  localStorage.setItem('ge-leave-planner', JSON.stringify(data));
+  const ind = document.getElementById('lv-save-ind'); ind.classList.add('show'); setTimeout(() => ind.classList.remove('show'), 1500);
 }
-function lvLoadData(){
-  try{
-    const raw=localStorage.getItem('ge-leave-planner');
-    // Also check old key from standalone planner
-    const old=localStorage.getItem('leave-planner');
-    const src=raw||old;
-    if(src){
-      const data=JSON.parse(src);
-      if(data.trips&&data.trips.length>0)lvTrips=data.trips;
-      if(data.leaveYearStart){lvYearStart=data.leaveYearStart;document.getElementById('lv-year-start').value=lvYearStart;}
-      if(data.totalLeave)document.getElementById('lv-total').value=data.totalLeave;
+function lvLoadData() {
+  try {
+    const raw = localStorage.getItem('ge-leave-planner');
+    const old = localStorage.getItem('leave-planner');
+    const src = raw || old;
+    if (src) {
+      const data = JSON.parse(src);
+      if (data.trips && data.trips.length > 0) lvTrips = data.trips;
+      if (data.leaveYearStart) { lvYearStart = data.leaveYearStart; document.getElementById('lv-year-start').value = lvYearStart; }
+      if (data.totalLeave) document.getElementById('lv-total').value = data.totalLeave;
     } else {
-      lvTrips=JSON.parse(JSON.stringify(DEFAULT_TRIPS));
+      lvTrips = JSON.parse(JSON.stringify(DEFAULT_TRIPS));
     }
-  }catch(e){lvTrips=JSON.parse(JSON.stringify(DEFAULT_TRIPS));}
+  } catch (e) { lvTrips = JSON.parse(JSON.stringify(DEFAULT_TRIPS)); }
 }
 
-function lvAllBH(){return[...(LV_BH[lvYearStart]||[]),...(LV_BH[lvYearStart+1]||[])];}
-function lvToYMD(d){return d.toISOString().slice(0,10);}
-function lvFmt(ymd){const[y,m,d]=ymd.split('-');return d+'/'+m+'/'+y;}
-function lvInYear(ymd){return ymd>=(lvYearStart+'-04-01')&&ymd<=((lvYearStart+1)+'-03-31');}
-function lvCountDays(start,end){
-  const bh=lvAllBH();const weekMap={};
-  let d=new Date(start+'T00:00:00');const e=new Date(end+'T00:00:00');
-  while(d<=e){
-    const dow=d.getDay();const ymd=lvToYMD(d);
-    if(dow!==0&&dow!==6&&!bh.includes(ymd)){
-      const mon=new Date(d);mon.setDate(d.getDate()-(dow-1));const key=lvToYMD(mon);weekMap[key]=(weekMap[key]||0)+1;
+function lvAllBH() { return [...(LV_BH[lvYearStart] || []), ...(LV_BH[lvYearStart + 1] || [])]; }
+function lvToYMD(d) { return d.toISOString().slice(0, 10); }
+function lvFmt(ymd) { const [y, m, d] = ymd.split('-'); return d + '/' + m + '/' + y; }
+function lvInYear(ymd) { return ymd >= (lvYearStart + '-04-01') && ymd <= ((lvYearStart + 1) + '-03-31'); }
+function lvCountDays(start, end) {
+  const bh = lvAllBH(); const weekMap = {};
+  let d = new Date(start + 'T00:00:00'); const e = new Date(end + 'T00:00:00');
+  while (d <= e) {
+    const dow = d.getDay(); const ymd = lvToYMD(d);
+    if (dow !== 0 && dow !== 6 && !bh.includes(ymd)) {
+      const mon = new Date(d); mon.setDate(d.getDate() - (dow - 1)); const key = lvToYMD(mon); weekMap[key] = (weekMap[key] || 0) + 1;
     }
-    d.setDate(d.getDate()+1);
+    d.setDate(d.getDate() + 1);
   }
-  let total=0;for(const key in weekMap)total+=Math.max(0,3-(5-weekMap[key]));
+  let total = 0; for (const key in weekMap) total += Math.max(0, 3 - (5 - weekMap[key]));
   return total;
 }
-function lvTotalUsed(){return lvTrips.reduce((s,t)=>s+t.leaveDays,0);}
-function lvLeaveDateSet(){
-  const s=new Set();
-  lvTrips.forEach(t=>{let d=new Date(t.start+'T00:00:00');const e=new Date(t.end+'T00:00:00');while(d<=e){s.add(lvToYMD(d));d.setDate(d.getDate()+1);}});
+function lvTotalUsed() { return lvTrips.reduce((s, t) => s + t.leaveDays, 0); }
+function lvLeaveDateSet() {
+  const s = new Set();
+  lvTrips.forEach(t => { let d = new Date(t.start + 'T00:00:00'); const e = new Date(t.end + 'T00:00:00'); while (d <= e) { s.add(lvToYMD(d)); d.setDate(d.getDate() + 1); } });
   return s;
 }
-function lvTripColor(ymd){
-  for(const t of lvTrips){let d=new Date(t.start+'T00:00:00');const e=new Date(t.end+'T00:00:00');while(d<=e){if(lvToYMD(d)===ymd)return t.color;d.setDate(d.getDate()+1);}}
+function lvTripColor(ymd) {
+  for (const t of lvTrips) { let d = new Date(t.start + 'T00:00:00'); const e = new Date(t.end + 'T00:00:00'); while (d <= e) { if (lvToYMD(d) === ymd) return t.color; d.setDate(d.getDate() + 1); } }
   return null;
 }
-function lvYearMonths(){
-  const m=[];for(let i=3;i<=11;i++)m.push({year:lvYearStart,month:i});for(let i=0;i<=2;i++)m.push({year:lvYearStart+1,month:i});return m;
+function lvYearMonths() {
+  const m = []; for (let i = 3; i <= 11; i++) m.push({ year: lvYearStart, month: i }); for (let i = 0; i <= 2; i++) m.push({ year: lvYearStart + 1, month: i }); return m;
 }
-
-function lvSwitchView(v,btn){
-  lvCurrentView=v;
-  document.getElementById('lv-view-month').style.display=v==='month'?'':'none';
-  document.getElementById('lv-view-year').style.display=v==='year'?'':'none';
-  document.querySelectorAll('.leave-view-tab').forEach(el=>el.classList.remove('active'));
+function lvSwitchView(v, btn) {
+  lvCurrentView = v;
+  document.getElementById('lv-view-month').style.display = v === 'month' ? '' : 'none';
+  document.getElementById('lv-view-year').style.display = v === 'year' ? '' : 'none';
+  document.querySelectorAll('.leave-view-tab').forEach(el => el.classList.remove('active'));
   btn.classList.add('active');
-  if(v==='year')lvRenderYear();else lvRenderCalendar();
+  if (v === 'year') lvRenderYear(); else lvRenderCalendar();
 }
-
-function lvRenderStats(){
-  const total=parseFloat(document.getElementById('lv-total').value)||16.8;
-  const used=lvTotalUsed();const remaining=+(total-used).toFixed(1);const pct=total>0?Math.round(used/total*100):0;
-  document.getElementById('lv-stats').innerHTML=
-    `<div class="leave-stat"><div class="leave-stat-label">Total leave</div><div class="leave-stat-value">${total}d</div></div>`+
-    `<div class="leave-stat"><div class="leave-stat-label">Used / planned</div><div class="leave-stat-value ${used>total?'warn':''}">${used.toFixed(1)}d</div></div>`+
-    `<div class="leave-stat"><div class="leave-stat-label">Remaining</div><div class="leave-stat-value ${remaining<0?'warn':'ok'}">${remaining}d</div></div>`+
-    `<div class="leave-stat"><div class="leave-stat-label">% used</div><div class="leave-stat-value">${pct}%</div></div>`+
+function lvRenderStats() {
+  const total = parseFloat(document.getElementById('lv-total').value) || 16.8;
+  const used = lvTotalUsed(); const remaining = +(total - used).toFixed(1); const pct = total > 0 ? Math.round(used / total * 100) : 0;
+  document.getElementById('lv-stats').innerHTML =
+    `<div class="leave-stat"><div class="leave-stat-label">Total leave</div><div class="leave-stat-value">${total}d</div></div>` +
+    `<div class="leave-stat"><div class="leave-stat-label">Used / planned</div><div class="leave-stat-value ${used > total ? 'warn' : ''}">${used.toFixed(1)}d</div></div>` +
+    `<div class="leave-stat"><div class="leave-stat-label">Remaining</div><div class="leave-stat-value ${remaining < 0 ? 'warn' : 'ok'}">${remaining}d</div></div>` +
+    `<div class="leave-stat"><div class="leave-stat-label">% used</div><div class="leave-stat-value">${pct}%</div></div>` +
     `<div class="leave-stat"><div class="leave-stat-label">Trips planned</div><div class="leave-stat-value">${lvTrips.length}</div></div>`;
 }
-
-function lvRenderCalendar(){
-  const bh=lvAllBH();const leaveDates=lvLeaveDateSet();const today=lvToYMD(new Date());
-  const months=lvYearMonths();
-  document.getElementById('lv-month-label').textContent=new Date(lvViewYear,lvViewMonth,1).toLocaleString('default',{month:'long',year:'numeric'});
-  document.getElementById('lv-months-nav').innerHTML=months.map(x=>{
-    const label=new Date(x.year,x.month,1).toLocaleString('default',{month:'short'});
-    const isActive=x.year===lvViewYear&&x.month===lvViewMonth;
-    return`<button class="leave-month-btn${isActive?' active':''}" onclick="lvGotoMonth(${x.year},${x.month})">${label}</button>`;
+function lvRenderCalendar() {
+  const bh = lvAllBH(); const leaveDates = lvLeaveDateSet(); const today = lvToYMD(new Date());
+  const months = lvYearMonths();
+  document.getElementById('lv-month-label').textContent = new Date(lvViewYear, lvViewMonth, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+  document.getElementById('lv-months-nav').innerHTML = months.map(x => {
+    const label = new Date(x.year, x.month, 1).toLocaleString('default', { month: 'short' });
+    const isActive = x.year === lvViewYear && x.month === lvViewMonth;
+    return `<button class="leave-month-btn${isActive ? ' active' : ''}" onclick="lvGotoMonth(${x.year},${x.month})">${label}</button>`;
   }).join('');
-  let html=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="leave-day-header">${d}</div>`).join('');
-  const first=new Date(lvViewYear,lvViewMonth,1);let startDow=first.getDay();startDow=startDow===0?6:startDow-1;
-  for(let i=0;i<startDow;i++){const d=new Date(lvViewYear,lvViewMonth,1-startDow+i);html+=`<div class="leave-day other-month">${d.getDate()}</div>`;}
-  const dim=new Date(lvViewYear,lvViewMonth+1,0).getDate();
-  for(let d=1;d<=dim;d++){
-    const dt=new Date(lvViewYear,lvViewMonth,d);const ymd=lvToYMD(dt);const dow=dt.getDay();
-    const isWeekend=dow===0||dow===6;const isBH=bh.includes(ymd);const isLeave=leaveDates.has(ymd);
-    const isToday=ymd===today;const inYear=lvInYear(ymd);
-    let cls='leave-day';
-    if(!inYear)cls+=' out-of-range';else if(isWeekend)cls+=' weekend';
-    if(isToday)cls+=' today';
-    if(inYear&&isBH&&!isLeave)cls+=' bank-holiday';
-    if(isLeave)cls+=' leave-day-on';
-    const tc=lvTripColor(ymd);const dot=tc&&!isWeekend&&!isBH?`<span class="leave-trip-dot" style="background:${tc}"></span>`:'';
-    html+=`<div class="${cls}">${d}${dot}</div>`;
+  let html = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<div class="leave-day-header">${d}</div>`).join('');
+  const first = new Date(lvViewYear, lvViewMonth, 1); let startDow = first.getDay(); startDow = startDow === 0 ? 6 : startDow - 1;
+  for (let i = 0; i < startDow; i++) { const d = new Date(lvViewYear, lvViewMonth, 1 - startDow + i); html += `<div class="leave-day other-month">${d.getDate()}</div>`; }
+  const dim = new Date(lvViewYear, lvViewMonth + 1, 0).getDate();
+  for (let d = 1; d <= dim; d++) {
+    const dt = new Date(lvViewYear, lvViewMonth, d); const ymd = lvToYMD(dt); const dow = dt.getDay();
+    const isWeekend = dow === 0 || dow === 6; const isBH = bh.includes(ymd); const isLeave = leaveDates.has(ymd);
+    const isToday = ymd === today; const inYear = lvInYear(ymd);
+    let cls = 'leave-day';
+    if (!inYear) cls += ' out-of-range'; else if (isWeekend) cls += ' weekend';
+    if (isToday) cls += ' today';
+    if (inYear && isBH && !isLeave) cls += ' bank-holiday';
+    if (isLeave) cls += ' leave-day-on';
+    const tc = lvTripColor(ymd); const dot = tc && !isWeekend && !isBH ? `<span class="leave-trip-dot" style="background:${tc}"></span>` : '';
+    html += `<div class="${cls}">${d}${dot}</div>`;
   }
-  document.getElementById('lv-cal-grid').innerHTML=html;
+  document.getElementById('lv-cal-grid').innerHTML = html;
 }
-
-function lvRenderMiniMonth(year,month){
-  const bh=lvAllBH();const leaveDates=lvLeaveDateSet();const today=lvToYMD(new Date());
-  const label=new Date(year,month,1).toLocaleString('default',{month:'long',year:'numeric'});
-  let html=`<div class="leave-mini-month"><h4>${label}</h4><div class="leave-mini-cal">`;
-  ['M','T','W','T','F','S','S'].forEach(d=>{html+=`<div class="leave-mini-hdr">${d}</div>`;});
-  const first=new Date(year,month,1);let startDow=first.getDay();startDow=startDow===0?6:startDow-1;
-  for(let i=0;i<startDow;i++)html+='<div class="leave-mini-day other-month"></div>';
-  const dim=new Date(year,month+1,0).getDate();
-  for(let d=1;d<=dim;d++){
-    const dt=new Date(year,month,d);const ymd=lvToYMD(dt);const dow=dt.getDay();
-    const isWeekend=dow===0||dow===6;const isBH=bh.includes(ymd);const isLeave=leaveDates.has(ymd);
-    const isToday=ymd===today;const inYear=lvInYear(ymd);
-    let cls='leave-mini-day';
-    if(!inYear)cls+=' out-of-range';else if(isWeekend)cls+=' weekend';
-    if(isToday)cls+=' today';
-    if(inYear&&isBH&&!isLeave)cls+=' bank-holiday';
-    if(isLeave)cls+=' leave-day-on';
-    html+=`<div class="${cls}">${d}</div>`;
+function lvRenderMiniMonth(year, month) {
+  const bh = lvAllBH(); const leaveDates = lvLeaveDateSet(); const today = lvToYMD(new Date());
+  const label = new Date(year, month, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+  let html = `<div class="leave-mini-month"><h4>${label}</h4><div class="leave-mini-cal">`;
+  ['M', 'T', 'W', 'T', 'F', 'S', 'S'].forEach(d => { html += `<div class="leave-mini-hdr">${d}</div>`; });
+  const first = new Date(year, month, 1); let startDow = first.getDay(); startDow = startDow === 0 ? 6 : startDow - 1;
+  for (let i = 0; i < startDow; i++) html += '<div class="leave-mini-day other-month"></div>';
+  const dim = new Date(year, month + 1, 0).getDate();
+  for (let d = 1; d <= dim; d++) {
+    const dt = new Date(year, month, d); const ymd = lvToYMD(dt); const dow = dt.getDay();
+    const isWeekend = dow === 0 || dow === 6; const isBH = bh.includes(ymd); const isLeave = leaveDates.has(ymd);
+    const isToday = ymd === today; const inYear = lvInYear(ymd);
+    let cls = 'leave-mini-day';
+    if (!inYear) cls += ' out-of-range'; else if (isWeekend) cls += ' weekend';
+    if (isToday) cls += ' today';
+    if (inYear && isBH && !isLeave) cls += ' bank-holiday';
+    if (isLeave) cls += ' leave-day-on';
+    html += `<div class="${cls}">${d}</div>`;
   }
-  html+='</div></div>';return html;
+  html += '</div></div>'; return html;
 }
-
-function lvRenderYear(){
-  document.getElementById('lv-year-grid').innerHTML=lvYearMonths().map(x=>lvRenderMiniMonth(x.year,x.month)).join('');
-}
-
-function lvRenderTrips(){
-  const el=document.getElementById('lv-trips-list');
-  if(!lvTrips.length){el.innerHTML='<p class="leave-empty">No trips added yet.</p>';return;}
-  const sorted=lvTrips.map((t,i)=>({t,i})).sort((a,b)=>a.t.start.localeCompare(b.t.start));
-  el.innerHTML=sorted.map(({t,i})=>{
-    const label=t.leaveDays===1?'1 AL day':t.leaveDays+' AL days';
-    const isEditing=lvEditingIndex===i;
-    let html=`<div id="lv-trip-row-${i}">`;
-    html+=`<div class="leave-trip-row">
+function lvRenderYear() { document.getElementById('lv-year-grid').innerHTML = lvYearMonths().map(x => lvRenderMiniMonth(x.year, x.month)).join(''); }
+function lvRenderTrips() {
+  const el = document.getElementById('lv-trips-list');
+  if (!lvTrips.length) { el.innerHTML = '<p class="leave-empty">No trips added yet.</p>'; return; }
+  const sorted = lvTrips.map((t, i) => ({ t, i })).sort((a, b) => a.t.start.localeCompare(b.t.start));
+  el.innerHTML = sorted.map(({ t, i }) => {
+    const label = t.leaveDays === 1 ? '1 AL day' : t.leaveDays + ' AL days';
+    const isEditing = lvEditingIndex === i;
+    let html = `<div id="lv-trip-row-${i}">`;
+    html += `<div class="leave-trip-row">
       <span class="leave-trip-swatch" style="background:${t.color}"></span>
       <span class="leave-trip-name">${t.name}</span>
       <span class="leave-trip-dates">${lvFmt(t.start)} – ${lvFmt(t.end)}</span>
@@ -1162,8 +1271,8 @@ function lvRenderTrips(){
         <button class="leave-icon-btn" onclick="lvStartEdit(${i})">Edit</button>
         <button class="leave-icon-btn del" onclick="lvDeleteTrip(${i})">Del</button>
       </span></div>`;
-    if(isEditing){
-      html+=`<div class="leave-edit-form">
+    if (isEditing) {
+      html += `<div class="leave-edit-form">
         <div><label>Name</label><input id="lv-edit-name" type="text" value="${t.name}" style="width:140px"></div>
         <div><label>Start</label><input id="lv-edit-start" type="date" value="${t.start}"></div>
         <div><label>End</label><input id="lv-edit-end" type="date" value="${t.end}"></div>
@@ -1172,62 +1281,57 @@ function lvRenderTrips(){
         <button class="leave-cancel-btn" onclick="lvCancelEdit()">Cancel</button>
       </div>`;
     }
-    html+='</div>';return html;
+    html += '</div>'; return html;
   }).join('');
 }
 
-window.lvGotoMonth=function(y,m){lvViewYear=y;lvViewMonth=m;lvRenderCalendar();};
-window.lvStartEdit=function(i){lvEditingIndex=i;lvRenderTrips();};
-window.lvCancelEdit=function(){lvEditingIndex=null;lvRenderTrips();};
-window.lvSaveEdit=function(i){
-  const name=document.getElementById('lv-edit-name').value.trim();
-  const start=document.getElementById('lv-edit-start').value;
-  const end=document.getElementById('lv-edit-end').value;
-  const color=document.getElementById('lv-edit-color').value;
-  if(!name||!start||!end||end<start){alert('Please check the trip details.');return;}
-  lvTrips[i]={name,start,end,color,leaveDays:lvCountDays(start,end)};
-  lvEditingIndex=null;lvSaveData();lvRenderAll();
+window.lvGotoMonth = function (y, m) { lvViewYear = y; lvViewMonth = m; lvRenderCalendar(); };
+window.lvStartEdit = function (i) { lvEditingIndex = i; lvRenderTrips(); };
+window.lvCancelEdit = function () { lvEditingIndex = null; lvRenderTrips(); };
+window.lvSaveEdit = function (i) {
+  const name = document.getElementById('lv-edit-name').value.trim();
+  const start = document.getElementById('lv-edit-start').value;
+  const end = document.getElementById('lv-edit-end').value;
+  const color = document.getElementById('lv-edit-color').value;
+  if (!name || !start || !end || end < start) { alert('Please check the trip details.'); return; }
+  lvTrips[i] = { name, start, end, color, leaveDays: lvCountDays(start, end) };
+  lvEditingIndex = null; lvSaveData(); lvRenderAll();
 };
-window.lvDeleteTrip=function(i){
-  if(!confirm('Delete "'+lvTrips[i].name+'"?'))return;
-  lvTrips.splice(i,1);lvEditingIndex=null;lvSaveData();lvRenderAll();
+window.lvDeleteTrip = function (i) {
+  if (!confirm('Delete "' + lvTrips[i].name + '"?')) return;
+  lvTrips.splice(i, 1); lvEditingIndex = null; lvSaveData(); lvRenderAll();
 };
+function lvRenderAll() { lvRenderStats(); if (lvCurrentView === 'year') lvRenderYear(); else lvRenderCalendar(); lvRenderTrips(); }
 
-function lvRenderAll(){
-  lvRenderStats();
-  if(lvCurrentView==='year')lvRenderYear();else lvRenderCalendar();
-  lvRenderTrips();
-}
-
-document.getElementById('lv-prev').onclick=function(){
-  const months=lvYearMonths();const idx=months.findIndex(x=>x.year===lvViewYear&&x.month===lvViewMonth);
-  if(idx>0){lvViewYear=months[idx-1].year;lvViewMonth=months[idx-1].month;lvRenderCalendar();}
+document.getElementById('lv-prev').onclick = function () {
+  const months = lvYearMonths(); const idx = months.findIndex(x => x.year === lvViewYear && x.month === lvViewMonth);
+  if (idx > 0) { lvViewYear = months[idx - 1].year; lvViewMonth = months[idx - 1].month; lvRenderCalendar(); }
 };
-document.getElementById('lv-next').onclick=function(){
-  const months=lvYearMonths();const idx=months.findIndex(x=>x.year===lvViewYear&&x.month===lvViewMonth);
-  if(idx<months.length-1){lvViewYear=months[idx+1].year;lvViewMonth=months[idx+1].month;lvRenderCalendar();}
+document.getElementById('lv-next').onclick = function () {
+  const months = lvYearMonths(); const idx = months.findIndex(x => x.year === lvViewYear && x.month === lvViewMonth);
+  if (idx < months.length - 1) { lvViewYear = months[idx + 1].year; lvViewMonth = months[idx + 1].month; lvRenderCalendar(); }
 };
-document.getElementById('lv-year-start').onchange=function(e){
-  lvYearStart=parseInt(e.target.value);lvViewYear=lvYearStart;lvViewMonth=3;
-  lvSaveData();lvRenderAll();
+document.getElementById('lv-year-start').onchange = function (e) {
+  lvYearStart = parseInt(e.target.value); lvViewYear = lvYearStart; lvViewMonth = 3;
+  lvSaveData(); lvRenderAll();
 };
-document.getElementById('lv-total').onchange=function(){lvSaveData();lvRenderStats();};
-document.getElementById('lv-add-btn').onclick=function(){
-  const name=document.getElementById('lv-name').value.trim();
-  const start=document.getElementById('lv-start').value;
-  const end=document.getElementById('lv-end').value;
-  const color=document.getElementById('lv-color').value;
-  const msg=document.getElementById('lv-add-msg');
-  if(!name){msg.style.color='var(--amber)';msg.textContent='Please enter a trip name.';return;}
-  if(!start||!end){msg.style.color='var(--amber)';msg.textContent='Please enter start and end dates.';return;}
-  if(end<start){msg.style.color='var(--amber)';msg.textContent='End date must be after start date.';return;}
-  const leaveDays=lvCountDays(start,end);
-  lvTrips.push({name,start,end,color,leaveDays});
-  msg.style.color='var(--accent)';
-  msg.textContent=`Added "${name}" — ${leaveDays} AL day${leaveDays===1?'':'s'} used.`;
-  document.getElementById('lv-name').value='';document.getElementById('lv-start').value='';document.getElementById('lv-end').value='';
-  lvViewYear=parseInt(start.slice(0,4));lvViewMonth=parseInt(start.slice(5,7))-1;
-  lvSaveData();lvRenderAll();
+document.getElementById('lv-total').onchange = function () { lvSaveData(); lvRenderStats(); };
+document.getElementById('lv-add-btn').onclick = function () {
+  const name = document.getElementById('lv-name').value.trim();
+  const start = document.getElementById('lv-start').value;
+  const end = document.getElementById('lv-end').value;
+  const color = document.getElementById('lv-color').value;
+  const msg = document.getElementById('lv-add-msg');
+  if (!name) { msg.style.color = 'var(--amber)'; msg.textContent = 'Please enter a trip name.'; return; }
+  if (!start || !end) { msg.style.color = 'var(--amber)'; msg.textContent = 'Please enter start and end dates.'; return; }
+  if (end < start) { msg.style.color = 'var(--amber)'; msg.textContent = 'End date must be after start date.'; return; }
+  const leaveDays = lvCountDays(start, end);
+  lvTrips.push({ name, start, end, color, leaveDays });
+  msg.style.color = 'var(--accent)';
+  msg.textContent = `Added "${name}" — ${leaveDays} AL day${leaveDays === 1 ? '' : 's'} used.`;
+  document.getElementById('lv-name').value = ''; document.getElementById('lv-start').value = ''; document.getElementById('lv-end').value = '';
+  lvViewYear = parseInt(start.slice(0, 4)); lvViewMonth = parseInt(start.slice(5, 7)) - 1;
+  lvSaveData(); lvRenderAll();
 };
 
 // ════════════════════════════════════════
@@ -1236,8 +1340,6 @@ document.getElementById('lv-add-btn').onclick=function(){
 loadState();
 render();
 lvLoadData();
-// Don't render leave tab until it's opened (for performance)
-// But pre-init stats
 </script>
 </body>
 </html>
